@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Coop</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/coop.css">
+    <link rel="shortcut icon" href="favicon.ico">
+    <script src="https://www.gstatic.com/firebasejs/5.8.6/firebase.js"></script>
+    <script>
+      // Initialize Firebase
+      var config = {
+        apiKey: "AIzaSyAmdThHlRK7ZkDckFCLyhpRVpLM69gRDro",
+        authDomain: "coop-b3e28.firebaseapp.com",
+        databaseURL: "https://coop-b3e28.firebaseio.com",
+        projectId: "coop-b3e28",
+        storageBucket: "coop-b3e28.appspot.com",
+        messagingSenderId: "810816192178"
+      };
+      firebase.initializeApp(config);
+    </script>
+    <script type="text/javascript" src="/static/js/coop.js"></script>
+  </head>
+  <body>
+    <div class="form"><!-- 商品情報を表示 -->
+      <h1>アイテムリスト</h1>
+      <ul>
+        <div id="insertBarcodeError"></div><!-- ここにバーコードに関するエラー情報を示すのタグが挿入される -->
+        <div id="insertItem"></div> <!-- ここに選択した商品情報を示すタグが挿入される -->
+        <div> <!-- 以下、選択した商品の合計金額を表示 -->
+          <li class="item">
+            <div class="table">
+              <div id="summary-text" class="table-style">
+                合計
+              </div>
+              <div id="summary-price" class="table-style"></div>
+            </div>
+          </li>
+        </div>
+      </ul>
+    </div>
+    <div class="form"><!-- ユーザ情報を表示 -->
+      <h1>ご登録カード情報</h1>
+      <ul>
+        <div id="insertFelicaError"></div><!-- ここにFelicaに関するエラー情報を示すタグが挿入される -->
+        <div class="userinfo">
+          <div id="insertUserInfo" class="table"></div> <!-- ここにユーザ情報を示すタグが挿入される -->
+        </div>
+      </ul>
+      <div class="buyform table">
+	      <div id="insertBuyError" class="table-style"></div><!-- ここに購入ボタンを押した際のエラー情報を示すタグが挿入される　-->
+        <div class="button-container table-style">
+		<audio id="ok_sound" preload="auto">
+				<source src="audio/treasure.mp3" type="audio/mp3">
+		</audio>
+		<audio id="win_sound" preload="auto">
+				<source src="audio/zelda_open_treasure.mp3" type="audio/mp3">
+		</audio>
+  <button type="button" id="buy-button" onclick="postInfo();">
+	    購入確定
+	  </button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
