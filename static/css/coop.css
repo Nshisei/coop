@@ -42,12 +42,17 @@ ul {
 
 .checkout {
   display: flex;
+  margin-bottom: 10px;
   justify-content: space-between;
   align-items: center;
+  
+  
 }
 
 .total-amount {
   font-size: 1.2em;
+  font-weight: bold;
+  
 }
 
 #card {
@@ -63,46 +68,78 @@ ul {
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 17px;
+
 }
 
 /* 追加項目のスタイル */
-.item-detail, .user-detail {
-  background: #f8f8f8;
-  border: 1px solid #ddd;
+/* 商品リストのスタイル */
+.item {
+  background-color: #f7f7f7;
+  border: 1px solid #e1e1e1;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.item-detail div, .user-detail div {
-  margin-bottom: 5px;
+.item-info {
+  display: flex;
+  align-items: center;
 }
 
-.detail-label {
+.item-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+.item-price {
+  color: #4CAF50;
+  font-size: 18px;
   font-weight: bold;
 }
 
-.detail-value {
-  margin-left: 10px;
-}
-
-.form-input {
-  padding: 5px;
-  margin: 5px 0;
-  border: 1px solid #ddd;
-  border-radius: 3px;
-}
-
-.form-button {
-  background-color: #4CAF50; /* Green */
-  border: none;
+/* ボタンのスタイル */
+.remove-button {
+  background-color: #e75b5b;
   color: white;
-  padding: 10px 20px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
+  text-align: center;
+}
+
+.remove-button:hover {
+  background-color: rgb(129 68 68);
+}
+
+/* ユーザー情報のスタイル */
+.card-info {
+  background-color: #f7f7f7;
+  border: 1px solid #e1e1e1;
+  padding: 10px;
   border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+#card {
+  /* 既存のスタイルに加えて */
+  display: flex; /* フレックスボックスとして設定 */
+  flex-wrap: wrap; /* 内容が多い場合は折り返し */
+  justify-content: space-between; /* 項目間のスペースを均等に分配 */
+  align-items: center; /* 項目を中央揃え */
+}
+
+.card-info div {
+  /* カード情報の各項目に適用されるスタイル */
+  margin-bottom: 10px;
+  flex: 1; /* 各項目を均等に広げる */
+}
+
+.card-info button {
+  margin-top: 10px;
 }

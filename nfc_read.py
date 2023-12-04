@@ -48,7 +48,7 @@ def get_user(value):
                     FROM 
                         users 
                     WHERE 
-                        nfc_id = '{:016X}'
+                        nfc_id = '1D1D1D9E10091001'
                 """.format(value)) # '{:016X}'
     rows = cursor.fetchall()
     if (len(rows) == 1):
@@ -63,31 +63,32 @@ FELICA_POLLING_ANY = 0xffff
 
 if __name__ == '__main__':
 
-    libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
+    # libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
 
-    libpafe.pasori_open.restype = c_void_p
-    pasori = libpafe.pasori_open()
-    before = 0
+    # libpafe.pasori_open.restype = c_void_p
+    # pasori = libpafe.pasori_open()
+    # before = 0
 
     while True:
         # 入力の受付
-        libpafe.pasori_init(pasori)
-        libpafe.felica_polling.restype = c_void_p
-        felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
-        idm = c_ulonglong()
-        libpafe.felica_get_idm.restype = c_void_p
-        libpafe.felica_get_idm(felica, byref(idm))
-        if idm.value != 0 and idm.value != before:
+        # libpafe.pasori_init(pasori)
+        # libpafe.felica_polling.restype = c_void_p
+        # felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
+        # idm = c_ulonglong()
+        # libpafe.felica_get_idm.restype = c_void_p
+        # libpafe.felica_get_idm(felica, byref(idm))
+        # if idm.value != 0 and idm.value != before:
             # # IDmは16進表記
             # send_nfc_data("%016X" % idm.value)
-            user_info = get_user(idm.value)
-            send_nfc_data(user_info)
-
-        before = idm.value
+            # user_info = get_user(idm.value)
+            # send_nfc_data(user_info)
+        tmp = input()
+        value = ''
+        user_info = get_user(value)
+        send_nfc_data(user_info)
     # # READMEより、felica_polling()使用後はfree()を使う
     # # なお、freeは自動的にライブラリに入っているもよう
     # libpafe.free(felica)
 
     # libpafe.pasori_close(pasori)
     connection.close()
-        

@@ -4,6 +4,8 @@ var user_id = 0; // ユーザID
 var card_id = 0; // カードID
 var item_id = []; // 商品のID
 var price = []; // 商品の価格
+var insert = []; // 商品の価格
+var item_num = 0;
 
 // 購入商品の合計金額を計算する関数
 var calculateSum = function(){
@@ -11,16 +13,20 @@ var calculateSum = function(){
   price.forEach(function(value){
       sum += Number(value);
   });
-  document.getElementById("total").innerText = sum;
+  document.getElementById("total").innerText = '¥' + sum;
 };
 
 // 商品情報のキャンセルボタンが押されると該当の商品を削除
 var removeItem = function(id){
-  var index = item_id.indexOf(id);
+  var index = item_id.indexOf(Number(id));
   if(index !== -1){
       item_id.splice(index, 1);
       price.splice(index, 1);
-      document.getElementById(id).parentNode.remove();
+      insert.splice(index,1);
+      document.getElementById("items").textContent = ''; //itemListをクリーン
+      insert.forEach(function(value){
+        document.getElementById("items").insertAdjacentHTML('beforeend', value);
+      });
       calculateSum();
   }
 };
@@ -29,24 +35,30 @@ var removeItem = function(id){
 var removeUserInfo = function(){
     user_id = 0;
     card_id = 0;
-    document.getElementById("card").innerHTML = '';
+    document.getElementById("card").innerHTML = 'カード情報がここに表示されます';
+    
 };
 // サーバーから商品が追加されたときの処理
 socket.on('item_added', function(data){
-  item_id.push(data.item_id);
+  item_num = item_num + 1;
+  item_id.push(item_num);
   price.push(data.itemPrice);
-  var itemHTML = '<li id="' + data.item_id + '" class="item"><div class="item-info"><div class="item-name">' + data.itemName + '</div><div class="item-price">¥' + data.itemPrice + '</div></div><button type="button" class="remove-button" onclick="removeItem(\'' + data.item_id + '\');">キャンセル</button></li>';
+  var itemHTML = '<li id="' + item_num + '" class="item"><div class="item-info"><div class="item-name">' + data.itemName + '</div><div class="item-price">¥' + data.itemPrice + '</div></div><button type="button" class="remove-button" onclick="removeItem(\'' + item_num + '\');">キャンセル</button></li>';
   document.getElementById("items").insertAdjacentHTML('beforeend', itemHTML);
   calculateSum();
+  insert.push(itemHTML);
 });
 
 // サーバーからユーザ情報が更新されたときの処理
 socket.on('user_info', function(data){
   user_id = data.user_id;
   card_id = data.card_id;
+  imbalanced = data.imbalanced;
+  console.log('Received data:', data);
+  socket.emit('confirmation', { 'message': 'Data received' });
 
   // HTMLにユーザ情報を表示
-  var userInfoHTML = 'ユーザID: ' + user_id + '<br>カードID: ' + card_id + '<br><button type="button" class="remove-button" onclick="removeUserInfo();">キャンセル</button>';
+  var userInfoHTML = 'ユーザID: ' + user_id + '<br>カードID: ' + card_id + '<br>' + '<br>残高: ' + imbalanced + '<br>' + '<button type="button" class="remove-button" onclick="removeUserInfo();">キャンセル</button>';
   document.getElementById("card").innerHTML = userInfoHTML;
 });
 
@@ -80,8 +92,8 @@ function resetPage() {
 
   // HTMLの内容をクリア
   document.getElementById("items").innerHTML = '';
-  document.getElementById("card").innerHTML = '';
   document.getElementById("total").innerText = '0';
+  document.getElementById("card").innerHTML = 'カード情報がここに表示されます';
 
   // その他のリセットに必要な処理があればここに追加
 }
