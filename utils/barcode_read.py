@@ -2,6 +2,7 @@ import evdev
 from evdev import InputDevice, categorize, ecodes
 import pika
 import mysql.connector
+from connect_db import get_items
 from dotenv import load_dotenv
 import os
 import json
@@ -34,27 +35,27 @@ def send_barcode_data(data):
     print(f" [x] Sent Barcode data: {data}")
 
 
-def get_item(barcode_data):
-    # データベースへの接続
-    db = mysql.connector.connect(**db_config)
-    cursor = db.cursor()
-    cursor.execute("USE coop")
-    db.commit()
-    cursor.execute(f"""
-                    SELECT 
-                        name
-                        , price
-                    FROM 
-                        items 
-                    WHERE 
-                        code = '{barcode_data}'
-                """)
-    rows = cursor.fetchall()
-    if (len(rows) == 1):
-            print(rows[0])
-            return rows[0]
-    else:
-        print("err!")
+# def get_item(barcode_data):
+#     # データベースへの接続
+#     db = mysql.connector.connect(**db_config)
+#     cursor = db.cursor()
+#     cursor.execute("USE coop")
+#     db.commit()
+#     cursor.execute(f"""
+#                     SELECT 
+#                         name
+#                         , price
+#                     FROM 
+#                         items 
+#                     WHERE 
+#                         code = '{barcode_data}'
+#                 """)
+#     rows = cursor.fetchall()
+#     if (len(rows) == 1):
+#             print(rows[0])
+#             return rows[0]
+#     else:
+#         print("err!")
 
 # # 利用可能なデバイスをリストアップ
 # devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
@@ -81,7 +82,7 @@ while True:
     #                 # Enterキーが押されたらバーコードデータを表示してリセット
     a = input()
     barcode_data = '4904872100195'
-    item_info = get_item(barcode_data)
+    item_info = get_items(barcode_data)
     send_barcode_data(item_info)
     print("読み取ったバーコード:", barcode_data)
     barcode_data = ''

@@ -4,6 +4,7 @@ import pika
 import eventlet
 from eventlet import wsgi
 import json
+from utils.connect_db import insert_order, update_balance
 
 # Pythonの標準ライブラリを非同期I/Oに対応するように書き換えます。
 eventlet.monkey_patch()
@@ -12,21 +13,20 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
+# --------------------Connect to BARCODE and NFCREAD through RabbitMQ-----------------------------------
 # Create a function to handle incoming RabbitMQ messages
 def on_rabbitmq_message_item(body):
     # When a message is received, broadcast it to all connected WebSocket clients
     data = json.loads(body)
-    socketio.emit('item_added', {'item_id': '1', 'itemName': data[0], 'itemPrice': data[1]})
-    with open('log.txt', 'a') as f:
-        print(data, file=f)
+    print(data)
+    socketio.emit('item_added', {'item_id': data[0], 'itemName': data[1], 'itemPrice': data[2]})
 
 # Create a function to handle incoming RabbitMQ messages
 def on_rabbitmq_message_user(body):
     # When a message is received, broadcast it to all connected WebSocket clients
     data = json.loads(body)
-    socketio.emit('user_info', {'user_id': '1', 'card_id': data[0], 'imbalanced': data[2]})
-    with open('log.txt', 'a') as f:
-        print(data, file=f)
+    print(data)
+    socketio.emit('user_info', {'user_id': data[0], 'userName': data[1], 'nfc_id': data[2], 'grade': data[3], 'balance': data[4]})
 
 
 # Define a function to set up RabbitMQ connection and channel
@@ -46,17 +46,18 @@ def rabbitmq_consumer_thread():
     channel = setup_rabbitmq()
     channel.start_consuming()
 
-@socketio.on('confirmation')
-def handle_my_event(data):
-    print('Received data:', data)
-    with open('log.txt', 'a') as f:
-        print(data, file=f)
+# --------------------DB -----------------------------------------------------------------------------------
 
 # 購入処理が終わったらブラウザ側に購入処理が終わったことを通知する
 @socketio.on('confirm_purchase')
-def handle_my_event(data):
+def confirm_purchase(data):
     print('Received data:', data)
+    data = dict(data)
+    insert_order(data)
+    update_balance(data)
     socketio.emit('purchase_confirmed', {'flag': 'ok'})
+
+# --------------------Page--------------------------------------------------------------------------------
 
 @app.route('/')
 def index():
@@ -65,4 +66,4 @@ def index():
 if __name__ == '__main__':
     eventlet.spawn(rabbitmq_consumer_thread)
     # socketio.run(app, debug=True)
-    wsgi.server(eventlet.listen(("127.0.0.1", 8000)), app) 
+    wsgi.server(eventlet.listen(("127.0.0.1", 8000)), app)

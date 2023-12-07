@@ -7,6 +7,7 @@ import mysql.connector
 from dotenv import load_dotenv
 import os
 import json
+from connect_db import get_user
 load_dotenv()
 # データベースの設定
 db_config = {
@@ -34,28 +35,7 @@ def send_nfc_data(nfc):
     channel.basic_publish(exchange='', routing_key='nfc_queue', body=nfc_bytes)
     print(f" [x] Sent NFC data: {nfc}")
 
-def get_user(value):
-    # データベースへの接続
-    db = mysql.connector.connect(**db_config)
-    cursor = db.cursor()
-    cursor.execute("USE coop")
-    db.commit()
-    cursor.execute("""
-                    SELECT 
-                        name
-                        , nfc_id
-                        , balance
-                    FROM 
-                        users 
-                    WHERE 
-                        nfc_id = '1D1D1D9E10091001'
-                """.format(value)) # '{:016X}'
-    rows = cursor.fetchall()
-    if (len(rows) == 1):
-            print(rows[0])
-            return rows[0]
-    else:
-        print("err!")
+
 
 
 # libpafe.hの77行目で定義
@@ -83,7 +63,7 @@ if __name__ == '__main__':
             # user_info = get_user(idm.value)
             # send_nfc_data(user_info)
         tmp = input()
-        value = ''
+        value = '1D1D1D9E10091001'
         user_info = get_user(value)
         send_nfc_data(user_info)
     # # READMEより、felica_polling()使用後はfree()を使う
