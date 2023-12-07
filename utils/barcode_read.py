@@ -16,14 +16,15 @@ db_config = {
     'database': os.getenv('DB_NAME')
 }
 
-# RabbitMQに接続
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-channel = connection.channel()
 
-# キューを宣言
-channel.queue_declare(queue='barcode_queue')
 
 def send_barcode_data(data):
+    # RabbitMQに接続
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+
+    # キューを宣言
+    channel.queue_declare(queue='barcode_queue')
     # NFCデータが文字列であることを確認し、バイト型に変換
     if isinstance(data, str):
         data_bytes = data.encode()
@@ -33,6 +34,7 @@ def send_barcode_data(data):
     
     channel.basic_publish(exchange='', routing_key='barcode_queue', body=data_bytes)
     print(f" [x] Sent Barcode data: {data}")
+    connection.close()
 
 
 # def get_item(barcode_data):

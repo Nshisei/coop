@@ -17,14 +17,15 @@ db_config = {
     'database': os.getenv('DB_NAME')
 }
 
-# RabbitMQに接続
-connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-channel = connection.channel()
 
-# キューを宣言
-channel.queue_declare(queue='nfc_queue')
 
 def send_nfc_data(nfc):
+    # RabbitMQに接続
+    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+    channel = connection.channel()
+
+    # キューを宣言
+    channel.queue_declare(queue='nfc_queue')
     # NFCデータが文字列であることを確認し、バイト型に変換
     if isinstance(nfc, str):
         nfc_bytes = nfc.encode()
@@ -34,6 +35,7 @@ def send_nfc_data(nfc):
     
     channel.basic_publish(exchange='', routing_key='nfc_queue', body=nfc_bytes)
     print(f" [x] Sent NFC data: {nfc}")
+    connection.close()
 
 
 
@@ -71,4 +73,4 @@ if __name__ == '__main__':
     # libpafe.free(felica)
 
     # libpafe.pasori_close(pasori)
-    connection.close()
+    
