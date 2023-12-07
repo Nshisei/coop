@@ -49,15 +49,17 @@ socket.on('item_added', function(data){
     price.push(data.itemPrice);
     // var itemHTML = '<li id="' + item_num + '" class="item"><div class="item-info"><div class="item-name">' + data.itemName + '</div><div class="item-price">¥' + data.itemPrice + '</div></div><button type="button" class="remove-button" onclick="removeItem(\'' + item_num + '\');">キャンセル</button></li>';
     var itemHTML = `
-            <li id="${item_num}" class="item">
-            <div class="item-info">
-                <div class="item-name">${data.itemName}</div>
-                <div class="item-price">¥${data.itemPrice}</div>
+        <li id="${item_num}" class="item">
+            <div class="item-details">
+                <div class="item-name-price">
+                    <span class="item-name">${data.itemName}</span>
+                    <span class="item-price">¥${data.itemPrice}</span>
+                </div>
+                <button type="button" class="remove-button" onclick="removeItem('${item_num}');">
+                    キャンセル
+                </button>
             </div>
-            <button type="button" class="remove-button" onclick="removeItem('${item_num}');">
-                キャンセル
-            </button>
-            </li>
+        </li>
         `;
     document.getElementById("items").insertAdjacentHTML('beforeend', itemHTML);
     calculateSum();
@@ -74,27 +76,16 @@ socket.on('user_info', function(data){
 
     // HTMLにユーザ情報を表示
     var userInfoHTML = `
-    <p class="card-user">購入者: ${userName}</p>
-    <p class="card-balance">残高: ${balance}</p>
-    <button type="button" class="remove-button" onclick="removeUserInfo();">キャンセル</button>
+    <div class="card-info-container">
+        <div class="user-balance-info">
+            <div class="card-user">購入者: <span class="user-name">${userName}</span></div>
+            <div class="card-balance">残高: <span class="user-balance">${balance}</span></div>
+        </div>
+        <button type="button" class="remove-button" onclick="removeUserInfo();">キャンセル</button>
+    </div>
     `;
     document.getElementById("card").innerHTML = userInfoHTML;
 });
-
-// itemlist用のテンプレートリテラル
-function createItemHTML(itemName, itemPrice, itemId) {
-    return `
-      <li id="${itemId}" class="item">
-        <div class="item-info">
-          <div class="item-name">${itemName}</div>
-          <div class="item-price">¥${itemPrice}</div>
-        </div>
-        <button type="button" class="remove-button" onclick="removeItem('${itemId}');">
-          キャンセル
-        </button>
-      </li>
-    `;
-  }
 
 // 購入確定ボタンが押されたときの処理
 document.getElementById("confirm-purchase").addEventListener("click", function(){
