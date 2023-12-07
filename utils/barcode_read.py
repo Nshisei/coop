@@ -34,55 +34,33 @@ def send_barcode_data(data):
     channel.basic_publish(exchange='', routing_key='barcode_queue', body=data_bytes)
     print(f" [x] Sent Barcode data: {data}")
 
+# 利用可能なデバイスをリストアップ
+devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+for device in devices:
+    print(device.path, device.name, device.phys)
+    if 'Barcode' in device.name:
+        # バーコードリーダーのデバイスパスを設定 (例: /dev/input/event0)
+        barcode_scanner_path = device.path
 
-# def get_item(barcode_data):
-#     # データベースへの接続
-#     db = mysql.connector.connect(**db_config)
-#     cursor = db.cursor()
-#     cursor.execute("USE coop")
-#     db.commit()
-#     cursor.execute(f"""
-#                     SELECT 
-#                         name
-#                         , price
-#                     FROM 
-#                         items 
-#                     WHERE 
-#                         code = '{barcode_data}'
-#                 """)
-#     rows = cursor.fetchall()
-#     if (len(rows) == 1):
-#             print(rows[0])
-#             return rows[0]
-#     else:
-#         print("err!")
+# バーコードリーダーデバイスを開く
+barcode_scanner = InputDevice(barcode_scanner_path)
 
-# # 利用可能なデバイスをリストアップ
-# devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-# for device in devices:
-#     print(device.path, device.name, device.phys)
+print("バーコードリーダーを監視中...")
 
-# # バーコードリーダーのデバイスパスを設定 (例: /dev/input/event0)
-# barcode_scanner_path = "/dev/input/event1"
-
-# # バーコードリーダーデバイスを開く
-# barcode_scanner = InputDevice(barcode_scanner_path)
-
-# print("バーコードリーダーを監視中...")
-
-# # バーコードデータを収集するための変数
-# barcode_data = ''
+# バーコードデータを収集するための変数
+barcode_data = ''
 
 while True:
-    # for event in barcode_scanner.read_loop():
-    #     if event.type == ecodes.EV_KEY:
-    #         data = categorize(event)
-    #         if data.keystate == 1:  # Down events only
-    #             if data.keycode == 'KEY_ENTER':
-    #                 # Enterキーが押されたらバーコードデータを表示してリセット
-    a = input()
-    barcode_data = '4904872100195'
-    item_info = get_items(barcode_data)
-    send_barcode_data(item_info)
-    print("読み取ったバーコード:", barcode_data)
-    barcode_data = ''
+    for event in barcode_scanner.read_loop():
+        if event.type == ecodes.EV_KEY:
+            data = categorize(event)
+            if data.keystate == 1:  # Down events only
+                if data.keycode == 'KEY_ENTER':
+                    # Enterキーが押されたらバーコードデータを表示してリセット
+                    item_info = get_items(barcode_data)
+                    send_barcode_data(item_info)
+                    print("読み取ったバーコード:", barcode_data)
+                    barcode_data = ''
+                else:
+                    # バーコードデータに文字を追加
+                    barcode_data += data.keycode.lstrip('KEY_')

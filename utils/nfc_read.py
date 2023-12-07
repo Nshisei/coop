@@ -3,7 +3,6 @@
 from __future__ import print_function
 import pika
 from ctypes import *
-import mysql.connector
 from dotenv import load_dotenv
 import os
 import json
@@ -36,36 +35,29 @@ def send_nfc_data(nfc):
     print(f" [x] Sent NFC data: {nfc}")
 
 
-
-
 # libpafe.hの77行目で定義
 FELICA_POLLING_ANY = 0xffff
 
 if __name__ == '__main__':
 
-    # libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
+    libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
 
-    # libpafe.pasori_open.restype = c_void_p
-    # pasori = libpafe.pasori_open()
-    # before = 0
+    libpafe.pasori_open.restype = c_void_p
+    pasori = libpafe.pasori_open()
+    before = 0
 
     while True:
         # 入力の受付
-        # libpafe.pasori_init(pasori)
-        # libpafe.felica_polling.restype = c_void_p
-        # felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
-        # idm = c_ulonglong()
-        # libpafe.felica_get_idm.restype = c_void_p
-        # libpafe.felica_get_idm(felica, byref(idm))
-        # if idm.value != 0 and idm.value != before:
-            # # IDmは16進表記
-            # send_nfc_data("%016X" % idm.value)
-            # user_info = get_user(idm.value)
-            # send_nfc_data(user_info)
-        tmp = input()
-        value = '1D1D1D9E10091001'
-        user_info = get_user(value)
-        send_nfc_data(user_info)
+        libpafe.pasori_init(pasori)
+        libpafe.felica_polling.restype = c_void_p
+        felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
+        idm = c_ulonglong()
+        libpafe.felica_get_idm.restype = c_void_p
+        libpafe.felica_get_idm(felica, byref(idm))
+        if idm.value != 0 and idm.value != before:
+            # IDmは16進表記
+            user_info = get_user("%016X" % idm.value)
+            send_nfc_data(user_info)
     # # READMEより、felica_polling()使用後はfree()を使う
     # # なお、freeは自動的にライブラリに入っているもよう
     # libpafe.free(felica)
