@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 import pika
 import eventlet
 from eventlet import wsgi
 import json
-from utils.connect_db import insert_order, update_balance, new_user, new_items_or_update_items
+import os
+from utils.connect_db import *
 
 # Pythonの標準ライブラリを非同期I/Oに対応するように書き換えます。
 eventlet.monkey_patch()
@@ -74,7 +75,9 @@ def index():
 
 @app.route('/item_list')
 def item_list():
-    return render_template('item_list.html', title='商品一覧')
+    sql_path = os.path.join(sql_dir, 'get_all_items.sql')
+    rows = exec_sql_cmd(sql_path)
+    return render_template('item_list.html', title='商品一覧', data=rows)
 
 
 @app.route('/product_registration', methods=["GET", "POST"])
@@ -83,6 +86,7 @@ def product_registration():
         return render_template('product_registration.html', title='新規商品登録', message='')
     else:
         data = dict(request.form)
+        data = sorted(data, key=lambda x: x[1])
         result = new_items_or_update_items(data)
         print(result)
         if isinstance(result, list):
