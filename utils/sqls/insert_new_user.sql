@@ -2,14 +2,14 @@ INSERT INTO users (
     name
     , balance
     , grade
-    , probalility
+    , probability
     , nfc_id
 )
 VALUES(
-    NAME
+    'NAME'
     , 0
     , GRADE
     , 1
-    , NFC_ID
+    , 'NFC_ID'
 )
 ;

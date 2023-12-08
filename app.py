@@ -1,10 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 import pika
 import eventlet
 from eventlet import wsgi
 import json
-from utils.connect_db import insert_order, update_balance
+from utils.connect_db import insert_order, update_balance, new_user, new_items_or_update_items
 
 # Pythonの標準ライブラリを非同期I/Oに対応するように書き換えます。
 eventlet.monkey_patch()
@@ -77,13 +77,35 @@ def item_list():
     return render_template('item_list.html', title='商品一覧')
 
 
-@app.route('/product_registration')
+@app.route('/product_registration', methods=["GET", "POST"])
 def product_registration():
-    return render_template('product_registration.html', title='新規商品登録')
+    if request.method == "GET":
+        return render_template('product_registration.html', title='新規商品登録', message='')
+    else:
+        data = dict(request.form)
+        result = new_items_or_update_items(data)
+        print(result)
+        if isinstance(result, list):
+            return render_template('product_registration.html', title='新規商品登録', message='商品登録ができました')
+        else:
+            # エラー
+            return render_template('product_registration.html', title='新規商品登録', message=result)
 
-@app.route('/user_registration')
+@app.route('/user_registration', methods=["GET", "POST"])
 def user_registration():
-    return render_template('user_registration.html', title='新規ユーザー登録')
+    print(request.method)
+    if request.method == "GET":
+        return render_template('user_registration.html', title='新規ユーザー登録', message='')
+    else:
+        data = dict(request.form)
+        if data['nfcId'] == '' or data['userName'] == '':
+            return render_template('user_registration.html', title='新規ユーザー登録', message='正しく入力してください')
+        result = new_user(data)
+        if isinstance(result, list):
+            return render_template('user_registration.html', title='新規ユーザー登録', message='ユーザ登録ができました')
+        else:
+            # エラー
+            return render_template('user_registration.html', title='新規ユーザー登録', message=result)
 
 def create_app():
     eventlet.spawn(rabbitmq_consumer_thread)

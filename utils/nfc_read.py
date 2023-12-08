@@ -21,17 +21,18 @@ def send_nfc_data(nfc):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    # キューを宣言
-    channel.queue_declare(queue='nfc_queue')
-    # NFCデータが文字列であることを確認し、バイト型に変換
     if isinstance(nfc, str):
+        # NFCデータが文字列であることを確認し、バイト型に変換
+        channel.queue_declare(queue='nfc_registration')
         nfc_bytes = nfc.encode()
+        channel.basic_publish(exchange='', routing_key='nfc_registration', body=nfc_bytes)
     else:
         # NFCデータがすでにバイト型であるか、またはJSON形式に変換可能なオブジェクトである場合
+        channel.queue_declare(queue='nfc_queue')
         nfc_bytes = json.dumps(nfc).encode()
-    
-    channel.basic_publish(exchange='', routing_key='nfc_queue', body=nfc_bytes)
-    print(f" [x] Sent NFC data: {nfc}")
+        channel.basic_publish(exchange='', routing_key='nfc_queue', body=nfc_bytes)
+
+    print(f" [x] Sent NFC data: {nfc_bytes}")
     connection.close()
 
 
@@ -40,24 +41,28 @@ FELICA_POLLING_ANY = 0xffff
 
 if __name__ == '__main__':
 
-    libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
+    # libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
 
-    libpafe.pasori_open.restype = c_void_p
-    pasori = libpafe.pasori_open()
-    before = 0
+    # libpafe.pasori_open.restype = c_void_p
+    # pasori = libpafe.pasori_open()
+    # before = 0
 
     while True:
         # 入力の受付
-        libpafe.pasori_init(pasori)
-        libpafe.felica_polling.restype = c_void_p
-        felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
-        idm = c_ulonglong()
-        libpafe.felica_get_idm.restype = c_void_p
-        libpafe.felica_get_idm(felica, byref(idm))
-        if idm.value != 0 and idm.value != before:
-            # IDmは16進表記
-            user_info = get_user("%016X" % idm.value)
-            send_nfc_data(user_info)
+        # libpafe.pasori_init(pasori)
+        # libpafe.felica_polling.restype = c_void_p
+        # felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
+        # idm = c_ulonglong()
+        # libpafe.felica_get_idm.restype = c_void_p
+        # libpafe.felica_get_idm(felica, byref(idm))
+        # if idm.value != 0 and idm.value != before:
+        #     # IDmは16進表記
+        #     user_info = get_user("%016X" % idm.value)
+        #     send_nfc_data(user_info)
+        tmp = input()
+        value = '1231231231231234'
+        user_info = get_user(value)
+        send_nfc_data(user_info)
     # # READMEより、felica_polling()使用後はfree()を使う
     # # なお、freeは自動的にライブラリに入っているもよう
     # libpafe.free(felica)
