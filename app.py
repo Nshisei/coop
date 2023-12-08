@@ -88,7 +88,8 @@ def user_registration():
 def create_app():
     eventlet.spawn(rabbitmq_consumer_thread)
     # socketio.run(app, debug=True)
-    wsgi.server(eventlet.listen(("192.168.2.198", 8000)), app)
+    return app
 
 if __name__ == '__main__':
     create_app()
+    wsgi.server(eventlet.listen(("192.168.2.198", 8000)), app)
