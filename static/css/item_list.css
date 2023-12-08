@@ -1,0 +1,35 @@
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.product-category {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+}
+
+.low-stock {
+    background-color: #ff4d4d;
+}
+
+.product-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.product-name, .product-price, .product-stock {
+    font-size: 16px;
+}

@@ -34,3 +34,4 @@ sudo reboot
 # RabbitMQの処理
 sudo apt-get install rabbitmq-server
 sudo service rabbitmq-server start
+
