@@ -25,16 +25,16 @@ def send_barcode_data(data):
         channel.basic_publish(exchange='', routing_key='barcode_queue', body=data_bytes)
     print(f" [x] Sent Barcode data: {data}")
 
-# # 利用可能なデバイスをリストアップ
-# devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
-# for device in devices:
-#     print(device.path, device.name, device.phys)
-#     if 'Barcode' in device.name:
-#         # バーコードリーダーのデバイスパスを設定 (例: /dev/input/event0)
-#         barcode_scanner_path = device.path
+# 利用可能なデバイスをリストアップ
+devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+for device in devices:
+    print(device.path, device.name, device.phys)
+    if 'Barcode' in device.name:
+        # バーコードリーダーのデバイスパスを設定 (例: /dev/input/event0)
+        barcode_scanner_path = device.path
 
-# # バーコードリーダーデバイスを開く
-# barcode_scanner = InputDevice(barcode_scanner_path)
+# バーコードリーダーデバイスを開く
+barcode_scanner = InputDevice(barcode_scanner_path)
 
 print("バーコードリーダーを監視中...")
 
@@ -42,16 +42,16 @@ print("バーコードリーダーを監視中...")
 barcode_data = ''
 
 while True:
-    # for event in barcode_scanner.read_loop():
-    #     if event.type == ecodes.EV_KEY:
-    #         data = categorize(event)
-    #         if data.keystate == 1:  # Down events only
-    #             if data.keycode == 'KEY_ENTER':
-    #                 # Enterキーが押されたらバーコードデータを表示してリセット
-    #                 item_info = get_items(barcode_data)
-    #                 send_barcode_data(item_info)
-    #                 print("読み取ったバーコード:", barcode_data)
-    #                 barcode_data = ''
-    #             else:
-    #                 # バーコードデータに文字を追加
-    #                 barcode_data += data.keycode.lstrip('KEY_')
+    for event in barcode_scanner.read_loop():
+        if event.type == ecodes.EV_KEY:
+            data = categorize(event)
+            if data.keystate == 1:  # Down events only
+                if data.keycode == 'KEY_ENTER':
+                    # Enterキーが押されたらバーコードデータを表示してリセット
+                    item_info = get_items(barcode_data)
+                    send_barcode_data(item_info)
+                    print("読み取ったバーコード:", barcode_data)
+                    barcode_data = ''
+                else:
+                    # バーコードデータに文字を追加
+                    barcode_data += data.keycode.lstrip('KEY_')
