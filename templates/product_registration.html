@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block header %}<link rel="stylesheet" href="/static/css/product_registration.css">{% endblock %}
+{% block title %} {{ title }} {% endblock %}
+{% block content %}
+<form id="newProductForm">
+    <div class="form-group">
+        <label for="barcode">Barcode:</label>
+        <input type="text" id="barcode" name="barcode" readonly value="">
+    </div>
+
+    <div class="form-group">
+        <label for="productName">商品名:</label>
+        <input type="text" id="productName" name="productName" value="">
+    </div>
+
+    <div class="form-group">
+        <label for="productPrice">金額:</label>
+        <input type="number" id="productPrice" name="productPrice" value="0" min="0" max="9999">
+    </div>
+
+    <div class="form-group">
+        <label for="stockQuantity">在庫数:</label>
+        <input type="number" id="stockQuantity" name="stockQuantity" value="0" min="0" max="9999">
+    </div>
+
+    <button type="submit">Register Product</button>
+</form>
+{% endblock %}
+{% block script %}<script src="/static/js/coop.js"></script>{% endblock %}
+

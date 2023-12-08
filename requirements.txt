@@ -5,4 +5,5 @@ eventlet
 pika
 websocket
 evdev
-
+mysql-connector-python
+python-dotenv
