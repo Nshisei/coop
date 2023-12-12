@@ -89,9 +89,7 @@ def product_registration():
         return render_template('product_registration.html', title='新規商品登録', message='')
     else:
         data = dict(request.form)
-        data = sorted(data, key=lambda x: x[1])
         result = new_items_or_update_items(data)
-        print(result)
         if isinstance(result, list):
             return render_template('product_registration.html', title='新規商品登録', message='商品登録ができました')
         else:

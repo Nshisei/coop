@@ -166,7 +166,7 @@ def new_items_or_update_items(data):
         'PRICE': str(productPrice),
         'CLASS': str(productCategory),
     }
-    if isinstance(get_items(barcode), list):
+    if isinstance(get_items(barcode), tuple):
         # 既に商品が存在する
         sql_path = os.path.join(sql_dir, 'update_item.sql')
         result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
