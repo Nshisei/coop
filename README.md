@@ -1,20 +1,46 @@
 # 購買システム
-下西研究室の購買システム
+研究室の購買システム
 
-# 実行内容
-<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/HOME%E7%94%BB%E9%9D%A2.png" width="320px">
+# 実行の様子
+![Gif](https://github.com/Nshisei/coop/blob/2e7d617b1e1d4e0eeea11a975ac652fee0e537f2/images/%E5%88%A9%E7%94%A8%E5%8B%95%E7%94%BB.gif)
 
+
+## 購入処理
+1. NFCカードをかざして、購入者情報を読み取る
+2. 商品のバーコードをかざし、商品情報を読み取る(1,2は順不同)
+3. キャンセルする場合は赤いボタンをクリック/そうでなければ購入ボタンをクリック
+4. 購入確定ポップアップが出たら完了
+
+* 商品 or ユーザー情報を入力する前に購入ボタンを押してもエラーポップアップが表示されるだけで購入処理は走らない
+
+## 新規ユーザー登録
+1. 新規ユーザー登録画面に移動
+2. 新規のNFCカードをかざして、NFC　IDを読み取る
+3. 名前と学年を入力
+4. 完了しました。という文字列が表示されたら終了
+
+## 新規商品登録
+1. 新規商品登録画面を表示
+2. 新規商品のバーコードを読み取る
+3. 新規商品の名前、金額、在庫数、商品種別を入力
+4. 完了しました。という文字列が表示されたら終了
+
+## 画面一覧
+<details>
+  <summary>HOME画面</summary>
+<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/HOME%E7%94%BB%E9%9D%A2.png">
+</details>
 <details>
   <summary>商品一覧</summary>
-<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E5%95%86%E5%93%81%E4%B8%80%E8%A6%A7%E7%94%BB%E9%9D%A2.png" width="320px">
+<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E5%95%86%E5%93%81%E4%B8%80%E8%A6%A7%E7%94%BB%E9%9D%A2.png">
 </details>
 <details>
   <summary>新規ユーザー登録</summary>
-<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E6%96%B0%E8%A6%8F%E7%99%BB%E9%8C%B2%E7%94%BB%E9%9D%A2.png" width="320px">
+<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E6%96%B0%E8%A6%8F%E7%99%BB%E9%8C%B2%E7%94%BB%E9%9D%A2.png">
 </details>
 <details>
   <summary>新規商品登録</summary>
-<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E5%95%86%E5%93%81%E7%99%BB%E9%8C%B2%E7%94%BB%E9%9D%A2.png" width="320px">
+<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E5%95%86%E5%93%81%E7%99%BB%E9%8C%B2%E7%94%BB%E9%9D%A2.png">
 </details>
 
 # 実行環境
@@ -30,7 +56,7 @@ Python 3.9.2
 
 
 # 概要図&使用技術
-<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E6%A6%82%E8%A6%81%E5%9B%B3.png" width="320px">
+<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E6%A6%82%E8%A6%81%E5%9B%B3.png">
 
 ## RabittMQ
 [RabbitMQ徹底解説: Qiita](https://qiita.com/haystacker/items/52e2fb7c5903c3f3bbf9)
@@ -48,7 +74,7 @@ Pythonを用いてWebアプリケーションを実現するための軽量な�
 Djangoに比べて軽量であるためラズパイ上で実現するのに適している。
 
 # ER図
-<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/%E6%A6%82%E8%A6%81%E5%9B%B3.png" width="320px">
+<img src="https://github.com/Nshisei/coop/blob/d16ccee809ffb65f908b9ee60fe8e67d466af98d/images/ER%E5%9B%B3.png">
 
 # 実行環境構築ステップ
 
