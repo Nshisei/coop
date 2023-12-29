@@ -29,7 +29,7 @@ test='blacklist pn533
 blacklist nfc'
 sudo echo "$text" >> /etc/modprobe.d/pasori.conf
 
-sudo reboot
+# sudo reboot
 
 # RabbitMQの処理
 sudo apt-get install rabbitmq-server

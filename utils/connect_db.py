@@ -76,6 +76,7 @@ def insert_order(data):
     item_ids = data['item_id']
     prices = data['price']
     sql_path = os.path.join(sql_dir, 'insert_order.sql')
+    sql_path2 = os.path.join(sql_dir, 'update_stock_num.sql')
     for item_id, price in zip(item_ids, prices):
         replace_ditc = {
             'USER_ID': str(user_id),
@@ -83,6 +84,7 @@ def insert_order(data):
             'ITEM_PRICE': str(price),
         }
         result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
+        result += exec_sql_cmd(sql_path2, replace_dict=replace_ditc)
 
 def update_balance(data):
     """取得したバーコードのid, name, priceを取得
@@ -119,6 +121,7 @@ def update_items(data):
         'USER_ID': str(user_id),
     }
     result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
+    sql_path = os.path.join(sql_dir, 'update_balance.sql')
 
 def new_user(data):
     """取得したバーコードのid, name, priceを取得
@@ -163,7 +166,7 @@ def new_items_or_update_items(data):
         'PRICE': str(productPrice),
         'CLASS': str(productCategory),
     }
-    if isinstance(get_items(barcode), list):
+    if isinstance(get_items(barcode), tuple):
         # 既に商品が存在する
         sql_path = os.path.join(sql_dir, 'update_item.sql')
         result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)

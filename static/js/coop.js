@@ -5,6 +5,7 @@ var user_id = 0; // ユーザID
 var card_id = 0; // カードID
 var grade = 0; // 学年
 var item_id = []; // 商品のID
+var item_list = []; // 商品のリスト
 var price = []; // 商品の価格
 var insert = []; // 商品の価格
 var item_num = 0;
@@ -25,6 +26,7 @@ var removeItem = function(id){
     var index = item_id.indexOf(Number(id));
     if(index !== -1){
         item_id.splice(index, 1);
+        item_list.splice(index, 1);
         price.splice(index, 1);
         insert.splice(index,1);
         document.getElementById("items").textContent = ''; //itemListをクリーン
@@ -46,6 +48,7 @@ var removeUserInfo = function(){
 socket.on('item_added', function(data){
     item_num = item_num + 1;
     item_id.push(item_num);
+    item_list.push(data.item_id);
     price.push(data.itemPrice);
     // var itemHTML = '<li id="' + item_num + '" class="item"><div class="item-info"><div class="item-name">' + data.itemName + '</div><div class="item-price">¥' + data.itemPrice + '</div></div><button type="button" class="remove-button" onclick="removeItem(\'' + item_num + '\');">キャンセル</button></li>';
     var itemHTML = `
@@ -107,7 +110,7 @@ document.getElementById("confirm-purchase").addEventListener("click", function()
     var purchaseInfo = {
         'user_id': user_id,
         'card_id': card_id,
-        'item_id': item_id,
+        'item_id': item_list,
         'price': price,
         'total': sum
     };
@@ -121,6 +124,7 @@ function resetPage() {
     userName = '';
     card_id = 0;
     item_id = [];
+    item_list = [];
     price = [];
     sum = 0;
 

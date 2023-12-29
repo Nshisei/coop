@@ -16,7 +16,7 @@ def send_barcode_data(data):
     if isinstance(data, str):
         data_bytes = data.encode()
         channel.queue_declare(queue='barcode_registration')
-        data_bytes = json.dumps(data).encode()
+        data_bytes = data.encode()
         channel.basic_publish(exchange='', routing_key='barcode_registration', body=data_bytes)
     else:
         # キューを宣言

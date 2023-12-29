@@ -19,7 +19,8 @@ socketio = SocketIO(app, cors_allowed_origins="*",async_mode='threading')
 def on_rabbitmq_message_item(body):
     # When a message is received, broadcast it to all connected WebSocket clients
     data = json.loads(body)
-    socketio.emit('item_added', {'item_id': data[0], 'itemName': data[1], 'itemPrice': data[2]})
+    socketio.emit('item_added', {'item_id': data[0], 'itemName': data[1], 'itemPrice': data[2]
+                                 , 'stockNum': data[3], 'itemClass': data[4], 'Barcode': data[5]})
 
 # Create a function to handle incoming RabbitMQ messages
 def on_rabbitmq_message_user(body):
@@ -33,7 +34,9 @@ def on_rabbitmq_message_user_registration(body):
     socketio.emit('user_nfc', {'nfc_id': body})
 def on_rabbitmq_message_item_registration(body):
     # When a message is received, broadcast it to all connected WebSocket clients
-    socketio.emit('item_barcode', {'barcode': body})
+    data = body.decode()
+    print(data, type(data))
+    socketio.emit('item_barcode', {'barcode': data})
 
 # Define a function to set up RabbitMQ connection and channel
 def setup_rabbitmq():
@@ -86,9 +89,7 @@ def product_registration():
         return render_template('product_registration.html', title='新規商品登録', message='')
     else:
         data = dict(request.form)
-        data = sorted(data, key=lambda x: x[1])
         result = new_items_or_update_items(data)
-        print(result)
         if isinstance(result, list):
             return render_template('product_registration.html', title='新規商品登録', message='商品登録ができました')
         else:
@@ -118,4 +119,4 @@ def create_app():
 
 if __name__ == '__main__':
     create_app()
-    wsgi.server(eventlet.listen(("192.168.2.198", 8000)), app)
+    wsgi.server(eventlet.listen(("192.168.2.198", 8080)), app)
