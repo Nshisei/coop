@@ -34,11 +34,14 @@ document.addEventListener('DOMContentLoaded', function() {
             var password = prompt("チャージを行うにはパスワードを入力してください:");
 
             // パスワードが正しい場合のみフォームを送信
-            if (password === "1234") {
+            if (password === "703") {
                 form.submit(); // フォームの送信を続行
             } else {
                 alert("エラー: パスワードが正しくありません。");
             }
+        } else {
+             // チャージ額が1未満の場合は、直接送信
+             form.submit();
         }
     };
 });

@@ -165,10 +165,11 @@ def new_items_or_update_items(data):
     productName = data['productName']
     productPrice = data['productPrice']
     stockQuantity = data['stockQuantity']
+    stockAdd = data['stockAdd']
     productCategory = data['productCategory']
     replace_ditc = {
         'NAME': str(productName),
-        'ADD_NUM': str(stockQuantity),
+        'ADD_NUM': str(stockAdd),
         'BARCODE': str(barcode),
         'PRICE': str(productPrice),
         'CLASS': str(productCategory),
