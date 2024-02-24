@@ -22,6 +22,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         <label for="userYear">登録年度:</label>
         <input type="number" id="userYear" name="userYear" value="2000" min="2000" max="9999">
+        
+        <label for="balance">現在の金額: </label>
+        <input type="number" id="balance" name="balance" readonly value="0">
+
+        <label for="charge">チャージ額: </label>
+        <input type="number" id="charge" name="charge" value="0">
 
         <button type="submit" class="submit-button">登録</button>
     </form>

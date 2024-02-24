@@ -105,7 +105,7 @@ def user_registration():
         data = dict(request.form)
         if data['nfcId'] == '' or data['userName'] == '':
             return render_template('user_registration.html', title='新規ユーザー登録', message='正しく入力してください')
-        result = new_user(data)
+        result = new_user_or_update_user(data)
         if isinstance(result, list):
             return render_template('user_registration.html', title='新規ユーザー登録', message='ユーザ登録ができました')
         else:

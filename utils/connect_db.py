@@ -123,7 +123,7 @@ def update_items(data):
     result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
     sql_path = os.path.join(sql_dir, 'update_balance.sql')
 
-def new_user(data):
+def new_user_or_update_user(data):
     """取得したバーコードのid, name, priceを取得
     barcodeがDBに登録済み
         → id, name, price を返す
@@ -135,14 +135,21 @@ def new_user(data):
     nfc_id = data["nfcId"]
     name = data["userName"]
     year = data["userYear"]
-            
-    sql_path = os.path.join(sql_dir, 'insert_new_user.sql')
+    balance = data["balance"]
+    charge = data["charge"]
     replace_ditc = {
         'NFC_ID': str(nfc_id),
         'NAME': str(name),
         'GRADE': str(year),
+        'CHARGE': str(charge),
     }
-    result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
+    if isinstance(get_user(nfc_id), tuple):
+        # 既に商品が存在する
+        sql_path = os.path.join(sql_dir, 'update_user.sql')
+        result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
+    else:
+        sql_path = os.path.join(sql_dir, 'insert_new_user.sql')
+        result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
     return result
 
 def new_items_or_update_items(data):
