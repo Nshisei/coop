@@ -75,6 +75,7 @@ def insert_order(data):
     user_id = data['user_id']
     item_ids = data['item_id']
     prices = data['price']
+    print(item_ids, prices)
     sql_path = os.path.join(sql_dir, 'insert_order.sql')
     sql_path2 = os.path.join(sql_dir, 'update_stock_num.sql')
     for item_id, price in zip(item_ids, prices):
