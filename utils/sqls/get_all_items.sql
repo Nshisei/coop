@@ -3,6 +3,7 @@ SELECT
     , price
     , stock_num
     , class
+    , code
 FROM 
     items 
 WHERE

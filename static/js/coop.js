@@ -11,6 +11,7 @@ var insert = []; // 商品の価格
 var item_num = 0;
 var str = '購入が確定されました';
 const discountProbability = 10;
+var page_id = new Date();
 
 // 購入商品の合計金額を計算する関数
 var calculateSum = function(){
@@ -50,6 +51,7 @@ socket.on('item_added', function(data){
     item_id.push(item_num);
     item_list.push(data.item_id);
     price.push(data.itemPrice);
+    console.log(item_list)
     // var itemHTML = '<li id="' + item_num + '" class="item"><div class="item-info"><div class="item-name">' + data.itemName + '</div><div class="item-price">¥' + data.itemPrice + '</div></div><button type="button" class="remove-button" onclick="removeItem(\'' + item_num + '\');">キャンセル</button></li>';
     var itemHTML = `
         <li id="${item_num}" class="item">
@@ -92,22 +94,18 @@ socket.on('user_info', function(data){
 
 // 購入確定ボタンが押されたときの処理
 document.getElementById("confirm-purchase").addEventListener("click", function(){
+    var button = this;
+    button.disabled = true;
     if(userName === '' || card_id === 0 || item_id.length === 0 || sum === 0){
         alert("商品情報またはユーザ情報が未入力です");
+	button.disabled = false;
         return;
     }
 
-    // 抽選当選処理
-    if(Math.random() * 100 <= discountProbability){ 
-        //アタリ		
-        item_id = [];
-        price = 0;
-        total = 0;
-        str = '当選おめでとうございます！料金は無料です！';
-    }
 
     // サーバーに購入情報を送信
     var purchaseInfo = {
+	'page_id': page_id,
         'user_id': user_id,
         'card_id': card_id,
         'item_id': item_list,
@@ -133,12 +131,14 @@ function resetPage() {
     document.getElementById("total").innerText = '0';
     document.getElementById("card").innerHTML = 'カード情報がここに表示されます';
 
-    // その他のリセットに必要な処理があればここに追加
+    document.getElementById("confirm-purchase").disabled = false; 
+    page_id = new Date();
 }
 
 
-// サーバーから購入処理完了の通知を受け取ったときの処理
+//  サーバーから購入処理完了の通知を受け取ったときの処理
 socket.on('purchase_confirmed', function(){
     alert(str);
     resetPage();
 });
+

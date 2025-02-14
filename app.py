@@ -1,14 +1,15 @@
+import eventlet
+# Pythonの標準ライブラリを非同期I/Oに対応するように書き換えます。
+eventlet.monkey_patch()
+from eventlet import wsgi
+
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
 import pika
-import eventlet
-from eventlet import wsgi
 import json
 import os
 from utils.connect_db import *
 
-# Pythonの標準ライブラリを非同期I/Oに対応するように書き換えます。
-eventlet.monkey_patch()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -19,6 +20,7 @@ socketio = SocketIO(app, cors_allowed_origins="*",async_mode='threading')
 def on_rabbitmq_message_item(body):
     # When a message is received, broadcast it to all connected WebSocket clients
     data = json.loads(body)
+    print("item", data)
     socketio.emit('item_added', {'item_id': data[0], 'itemName': data[1], 'itemPrice': data[2]
                                  , 'stockNum': data[3], 'itemClass': data[4], 'Barcode': data[5]})
 
@@ -26,6 +28,7 @@ def on_rabbitmq_message_item(body):
 def on_rabbitmq_message_user(body):
     # When a message is received, broadcast it to all connected WebSocket clients
     data = json.loads(body)
+    print("user", data)
     socketio.emit('user_info', {'user_id': data[0], 'userName': data[1], 'nfc_id': data[2], 'grade': data[3], 'balance': data[4]})
 
 def on_rabbitmq_message_user_registration(body):
@@ -62,13 +65,19 @@ def rabbitmq_consumer_thread():
 # --------------------DB -----------------------------------------------------------------------------------
 
 # 購入処理が終わったらブラウザ側に購入処理が終わったことを通知する
+PAGE_ID = "" 
 @socketio.on('confirm_purchase')
 def confirm_purchase(data):
+    global PAGE_ID
     print('Received data:', data)
     data = dict(data)
-    insert_order(data)
-    update_balance(data)
-    socketio.emit('purchase_confirmed', {'flag': 'ok'})
+    if data["page_id"] == PAGE_ID:
+        return
+    else:
+        PAGE_ID = data["page_id"]
+        insert_order(data)
+        update_balance(data)
+        socketio.emit('purchase_confirmed', {'flag': 'ok'})
 
 # --------------------Page--------------------------------------------------------------------------------
 
