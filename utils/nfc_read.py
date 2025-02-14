@@ -1,4 +1,5 @@
 from ctypes import *
+import multiprocessing
 from dotenv import load_dotenv
 import os
 from utils.connect_db import get_user
@@ -10,30 +11,37 @@ db_config = {
     'password': os.getenv('DB_PW'),
     'database': os.getenv('DB_NAME')
 }
-import asyncio
 
-async def nfc_reader(nfc_queue):
-    FELICA_POLLING_ANY = 0xffff
+FELICA_POLLING_ANY = 0xffff
+
+def nfc_process(queue):
+    """ NFC リーダーを監視し、Queue に送信 """
+    
     libpafe = cdll.LoadLibrary("/usr/local/lib/libpafe.so")
-
     libpafe.pasori_open.restype = c_void_p
     pasori = libpafe.pasori_open()
     before = 0
-    loop = asyncio.get_event_loop()
 
     while True:
-        await loop.run_in_executor(None, libpafe.pasori_init, pasori)
-        libpafe.felica_polling.restype = c_void_p
-        felica = await libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
-        idm = c_ulonglong()
-        libpafe.felica_get_idm.restype = c_void_p
-        await loop.run_in_executor(None, libpafe.felica_get_idm, felica, byref(idm))
-        if idm.value != 0 and idm.value != before:
-            user_info = get_user("%016X" % idm.value)
-            print(user_info)
-            await fc_queue.put(user_info)
-    # libpafe.pasori_close(pasori)
-    
+        try:
+            libpafe.pasori_init(pasori)
+            libpafe.felica_polling.restype = c_void_p
+            felica = libpafe.felica_polling(pasori, FELICA_POLLING_ANY, 0, 0)
+            idm = c_ulonglong()
+            libpafe.felica_get_idm.restype = c_void_p
+            libpafe.felica_get_idm(felica, byref(idm))
+
+            if idm.value != 0 and idm.value != before:
+                # IDmを16進表記
+                user_info = get_user("%016X" % idm.value)
+                queue.put(user_info)  # Queue に送信
+                before = idm.value  # 直前の IDm を保存して重複送信を防ぐ
+
+        except KeyboardInterrupt:
+            print("NFC 監視プロセスを終了します")
+            break
+
+
 
 if __name__ == '__main__':
     nfc_queue = multiprocessing.Queue()

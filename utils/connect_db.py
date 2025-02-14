@@ -22,7 +22,7 @@ def exec_sql_cmd(path_to_sql, replace_dict={}):
     result = {"result":None, "output": None}
     try:
         with mysql.connector.connect(autocommit=True, **db_config) as conn:
-            with conn.cursor() as cur:
+            with conn.cursor(dictionary=True) as cur:
                 with open(path_to_sql, 'r') as f:
                     sql = f.read()
                     for key, val in replace_dict.items():

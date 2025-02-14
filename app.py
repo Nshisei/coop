@@ -2,10 +2,8 @@ import eventlet
 # Pythonの標準ライブラリを非同期I/Oに対応するように書き換えます。
 eventlet.monkey_patch()
 from eventlet import wsgi
-
 from flask import Flask, render_template, request
 from flask_socketio import SocketIO
-import pika
 import json
 import os
 from utils.connect_db import *
@@ -15,52 +13,42 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
 socketio = SocketIO(app, cors_allowed_origins="*",async_mode='threading')
 
-# --------------------Connect to BARCODE and NFCREAD through RabbitMQ-----------------------------------
-# Create a function to handle incoming RabbitMQ messages
-def on_rabbitmq_message_item(body):
-    # When a message is received, broadcast it to all connected WebSocket clients
-    data = json.loads(body)
-    print("item", data)
-    socketio.emit('item_added', {'item_id': data[0], 'itemName': data[1], 'itemPrice': data[2]
-                                 , 'stockNum': data[3], 'itemClass': data[4], 'Barcode': data[5]})
+# NFC & Barcode 用のキューとプロセス
+nfc_queue = multiprocessing.Queue()
+barcode_queue = multiprocessing.Queue()
 
-# Create a function to handle incoming RabbitMQ messages
-def on_rabbitmq_message_user(body):
-    # When a message is received, broadcast it to all connected WebSocket clients
-    data = json.loads(body)
-    print("user", data)
-    socketio.emit('user_info', {'user_id': data[0], 'userName': data[1], 'nfc_id': data[2], 'grade': data[3], 'balance': data[4]})
+nfc_proc = multiprocessing.Process(target=nfc_process, args=(nfc_queue,))
+barcode_proc = multiprocessing.Process(target=barcode_process, args=(barcode_queue,))
 
-def on_rabbitmq_message_user_registration(body):
-    # When a message is received, broadcast it to all connected WebSocket clients
-    data = json.loads(body)
-    socketio.emit('user_nfc', {'nfc_id': body})
-def on_rabbitmq_message_item_registration(body):
-    # When a message is received, broadcast it to all connected WebSocket clients
-    data = body.decode()
-    print(data, type(data))
-    socketio.emit('item_barcode', {'barcode': data})
+def nfc_listener():
+    """ NFC データを監視し、WebSocket で送信 """
+    while True:
+        result = nfc_queue.get()  # Queue からデータ取得 (ブロッキング)
+        if isinstance(result, str):
+            socketio.emit('user_nfc', {'nfc_id': result})
+        else:
+            user_info = result
+            socketio.emit('user_info', {'user_id': user_info["id"], 'userName': user_info["name"],
+                                        'nfc_id': user_info["nfc_id"], 'grade': user_info["grade"], 'balance': user_info["balance"]})
 
-# Define a function to set up RabbitMQ connection and channel
-def setup_rabbitmq():
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host='localhost'))
-    channel = connection.channel()
-    channel.queue_declare(queue='barcode_queue')
-    channel.queue_declare(queue='nfc_queue')
-    channel.queue_declare(queue='barcode_registration')
-    channel.queue_declare(queue='nfc_registration')
-    
-    # Set up consumers
-    channel.basic_consume(queue='barcode_queue', on_message_callback=lambda ch, method, properties, body: on_rabbitmq_message_item(body), auto_ack=True)
-    channel.basic_consume(queue='nfc_queue', on_message_callback=lambda ch, method, properties, body: on_rabbitmq_message_user(body), auto_ack=True)
-    channel.basic_consume(queue='barcode_registration', on_message_callback=lambda ch, method, properties, body: on_rabbitmq_message_item_registration(body), auto_ack=True)
-    channel.basic_consume(queue='nfc_registration', on_message_callback=lambda ch, method, properties, body: on_rabbitmq_message_user_registration(body), auto_ack=True)
-    return channel
+def barcode_listener():
+    """ バーコードデータを監視し、WebSocket で送信 """
+    while True:
+        result = barcode_queue.get()  # Queue からデータ取得 (ブロッキング)
+        if isinstance(result, str):
+            socketio.emit('item_barcode', {'barcode': data})
+        else:
+            item = result
+            socketio.emit('item_added', {'item_id': item["id"], 'itemName': item["name"], 'itemPrice': item["price"]
+                             , 'stockNum': item["stock_num"], 'itemClass': item["class"], 'Barcode': item["code"]})
 
-# Create a separate thread for the RabbitMQ consumer
-def rabbitmq_consumer_thread():
-    channel = setup_rabbitmq()
-    channel.start_consuming()
+def start_monitoring():
+    """ NFC & バーコードの監視プロセスを開始し、監視ループを別スレッドで実行 """
+    nfc_proc.start()
+    barcode_proc.start()
+    eventlet.spawn(nfc_listener)
+    eventlet.spawn(barcode_listener)
+
 
 # --------------------DB -----------------------------------------------------------------------------------
 
@@ -124,11 +112,11 @@ def user_registration():
             # エラー
             return render_template('user_registration.html', title='新規ユーザー登録', message=result["output"])
 
-def create_app():
-    eventlet.spawn(rabbitmq_consumer_thread)
-    # socketio.run(app, debug=True)
-    return app
-
 if __name__ == '__main__':
-    create_app()
-    wsgi.server(eventlet.listen(("192.168.2.198", 8080)), app)
+    start_monitoring()  # NFC & バーコード監視を開始
+    try:
+        wsgi.server(eventlet.listen(("192.168.2.198", 8080)), app)
+    finally:
+        nfc_proc.terminate()  # Flask 終了時にプロセスを安全に停止
+        barcode_proc.terminate()  # Flask 終了時にプロセスを安全に停止
+        print("アプリ終了: NFC & バーコード監視プロセスを停止")
