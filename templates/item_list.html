@@ -1,56 +1,103 @@
 {% extends "base.html" %}
-{% block header %}<link rel="stylesheet" href="/static/css/item_list.css">{% endblock %}
+{% block header %}
+<link rel="stylesheet" href="/static/css/item_list.css">
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+{% endblock %}
 {% block title %} {{ title }} {% endblock %}
 {% block content %}
+<div class="filter-controls">
+    <button onclick="showInStock()">在庫ありを表示</button>
+    <button onclick="showOutOfStock()">在庫なしを表示</button>
+</div>
+
 <div class="product-grid">
     <!-- 飲料水カテゴリ（2列） -->
-    <div class="product-category beverages">
+    <div class="product-category">
         <h2>Beverages</h2>
-        <ul class="beverages-grid">
-            {% for product in data %}
-                {% if product[3] == 'drink' %}
-                    <li class="product-item {% if product[2] <= 10 %}low-stock{% endif %}">
-                        <div class="product-name">{{ product[0] }}</div>
-                        <div class="product-price">¥{{ product[1] }}</div>
-                        <div class="product-stock {% if product[2] <= 10 %}low-stock{% endif %}">在庫: {{ product[2] }}</div>
-                    </li>
-                {% endif %}
-            {% endfor %}
-        </ul>
+        <ul id="beverages-grid"></ul>
     </div>
 
-    <!-- 食べ物とコーヒーカテゴリ -->
     <div class="product-category food-and-coffee">
         <div class="coffee-column">
             <h2>Coffee</h2>
-            <ul id="coffee">
-                {% for product in data %}
-                    {% if product[3] == 'coffee' %}
-                        <li class="product-item {% if product[2] <= 10 %}low-stock{% endif %}">
-                            <div class="product-name">{{ product[0] }}</div>
-                            <div class="product-price">¥{{ product[1] }}</div>
-                            <div class="product-stock {% if product[2] <= 10 %}low-stock{% endif %}">在庫: {{ product[2] }}</div>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
+            <ul id="coffee"></ul>
         </div>
         <div class="food-column">
             <h2>Food</h2>
-            <ul id="food">
-                {% for product in data %}
-                    {% if product[3] == 'food' %}
-                        <li class="product-item {% if product[2] <= 10 %}low-stock{% endif %}">
-                            <div class="product-name">{{ product[0] }}</div>
-                            <div class="product-price">¥{{ product[1] }}</div>
-                            <div class="product-stock {% if product[2] <= 10 %}low-stock{% endif %}">在庫: {{ product[2] }}</div>
-                        </li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
+            <ul id="food"></ul>
         </div>
     </div>
 </div>
-{% endblock %}
-{% block script %}<script src="/static/js/coop.js"></script>{% endblock %}
 
+<!-- Flask から受け取ったデータを JavaScript に保存 -->
+<script>
+    window.products = {{ data | tojson }};
+</script>
+{% endblock %}
+{% block script %}
+<script src="/static/js/coop.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderProducts(window.products);
+});
+
+function renderProducts(products) {
+    // 各カテゴリのリストをクリア
+    const beveragesGrid = document.getElementById("beverages-grid");
+    const coffeeGrid = document.getElementById("coffee");
+    const foodGrid = document.getElementById("food");
+
+    beveragesGrid.innerHTML = "";
+    coffeeGrid.innerHTML = "";
+    foodGrid.innerHTML = "";
+
+    products.forEach((product, index) => {
+        const [name, price, stock, category, barcode] = product;
+        if (typeof stock !== "number") return;
+
+        // 商品アイテムの要素を作成
+        let productItem = document.createElement("li");
+        productItem.className = `product-item ${stock <= 10 ? 'low-stock' : ''}`;
+        productItem.innerHTML = `
+            <div class="product-name">${name}</div>
+            <div class="product-price">¥${price}</div>
+            <div class="product-stock ${stock <= 10 ? 'low-stock' : ''}">在庫: ${stock}</div>
+            <svg id="barcode-${index}"></svg>
+        `;
+
+        // カテゴリごとに要素を追加
+        if (category === "drink") {
+            beveragesGrid.appendChild(productItem);
+        } else if (category === "coffee") {
+            coffeeGrid.appendChild(productItem);
+        } else if (category === "food") {
+            foodGrid.appendChild(productItem);
+        }
+    });
+
+    // バーコードを描画
+    products.forEach((product, index) => {
+        if (product[4] && product[4].length === 13 && /^\d+$/.test(product[4])) {
+            JsBarcode(`#barcode-${index}`, product[4], {
+                format: "ean13",
+                displayValue: true,
+                width: 2,
+                height: 50
+            });
+        }
+    });
+}
+
+// 在庫ありを表示
+function showInStock() {
+    const filteredProducts = window.products.filter(product => product[2] > 0);
+    renderProducts(filteredProducts);
+}
+
+// 在庫なしを表示
+function showOutOfStock() {
+    const filteredProducts = window.products.filter(product => product[2] <= 0);
+    renderProducts(filteredProducts);
+}
+</script>
+{% endblock %}
