@@ -128,6 +128,52 @@ blacklist nfc
 sudo reboot
 ```
 
+実行確認
+```
+pasori_test
+```
+
+ここで、以下のように出力されれば成功
+```
+PaSoRi (RC-S330)
+ firmware version 1.30
+```
+
+よくあるのが、何らかのプロセスやドライバがデバイスを占有して使えない or 'error' となるケース
+```
+$ sudo apt install libusb-dev python3-usb
+$ sudo pip3 install nfcpy
+```
+として、
+
+```
+$ python3 -m nfc
+
+This is the 1.0.4 version of nfcpy run in Python 3.8.10
+on Linux-5.15.0-134-generic-x86_64-with-glibc2.29
+I'm now searching your system for contactless devices
+** found usb:054c:02e1 at usb:001:007 but it's already used
+-- scan sysfs entry at '/sys/bus/usb/devices/1-3:1.0/'
+-- the device is used by the 'pn533_usb' kernel driver
+-- this kernel driver belongs to the linux nfc subsystem
+-- you can remove it to free the device for this session
+   sudo modprobe -r pn533_usb
+-- and blacklist the driver to prevent loading next time
+   sudo sh -c 'echo blacklist pn533_usb >> /etc/modprobe.d/blacklist-nfc.conf'
+I'm not trying serial devices because you haven't told me
+-- add the option '--search-tty' to have me looking
+-- but beware that this may break other serial devs
+Sorry, but I couldn't find any contactless device
+```
+
+のように表示されたら、'pn533_usb' が占有しているので無効化する
+(Linuxカーネルに含まれる NFCリーダー用のドライバ)
+```
+sudo modprobe -r pn533_usb
+sudo sh -c 'echo blacklist pn533_usb >> /etc/modprobe.d/blacklist-nfc.conf'
+```
+
+
 ## 2. pythonライブラリのインストール
 ```
 $ pip3 install -r requirments.txt
@@ -139,61 +185,14 @@ sudo apt-get install rabbitmq-server
 sudo service rabbitmq-server start
 ```
 
-## 4. Apacheインストール
-[参考サイト1](https://sqr.hateblo.jp/entry/2023/05/03/135438)
-[参考サイト2](https://qiita.com/nabion/items/88528ad5eaf6fdad992e)
-Apacheのインストール
+## その他
+もし、barcoder scannerが認識されているのに動作しなかった場合、実行権限が不足している可能性がある
 ```
-sudo apt-get install apache2
+groups
 ```
-WSGIのインストール (requirement.txtをインストールしていれば不要)
-```
-sudu pip3 install mod-wsgi
-```
-実行環境のリンクを張る
-```
-sudo ln -sT ~/coop  /var/www/html/coop
-```
+→ input グループに入っていない場合、以下のように追加
 
-Apacheディレクティブの修正
 ```
-$ sudo vim /etc/apache2/sites-enabled/000-default.conf
-<VirtualHost *:80>
-        ServerName 192.168.2.198
-        WSGIDaemonProcess coop threads=5
-        ServerAdmin webmaster@localhost
-        DocumentRoot /var/www/html/coop
-        WSGIScriptAlias / /var/www/html/coop/app.wsgi
-        LoadModule wsgi_module /home/srv-admin/.local/lib/python3.9/site-packages/mod_wsgi/server/mod_wsgi-py39.cpython-39-arm-linux-gnueabihf.so
-        <Directory "/var/www/html/coop">
-             WSGIProcessGroup %{GLOBAL}
-             WSGIApplicationGroup %{RESOURCE}
-             WSGIScriptReloading On
-             Require all granted
-        </Directory>
-</VirtualHost>
-```
-モジュールの実行権限の付与
-```
-sudo chmod 777 /home/srv-admin/.local/lib/python3.9/site-packages/mod_wsgi/server/mod_wsgi-py39.cpython-39-arm-linux-gnueabihf.so
-```
-```
-$ sudo vim /etc/apache2/apache2.conf
-<Directory /var/www/html/coop>
-        Options FollowSymLinks
-        AllowOverride None
-        Require all granted
-</Directory>
-```
-再起動
-```
-sudo systemctl restart apache2
-```
-補足
-何か問題が起こったときは以下のコマンドでエラーメッセージを読む
-```
-# Apacheが起動しない場合
-systemctl status apache2
-# ApacheとFlaskの連携がうまくいかない場合
-tail -n 20 /var/log/apache2/error.log
+sudo usermod -aG input $USER
+newgrp input
 ```
