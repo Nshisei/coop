@@ -99,7 +99,9 @@ def insert_order(data):
             'ITEM_PRICE': str(price),
         }
         result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
-        result += exec_sql_cmd(sql_path2, replace_dict=replace_ditc)
+        print("insert order", result)
+        result = exec_sql_cmd(sql_path2, replace_dict=replace_ditc)
+        print("update stock", result)
     print("inter_order")
     print(result)
 
