@@ -46,7 +46,7 @@ if __name__ == '__main__':
     libpafe.pasori_open.restype = c_void_p
     pasori = libpafe.pasori_open()
     before = 0
-
+    print("NFC Reading...")
     while True:
         # 入力の受付
         libpafe.pasori_init(pasori)

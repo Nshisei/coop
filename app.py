@@ -88,8 +88,11 @@ def index():
 @app.route('/item_list')
 def item_list():
     sql_path = os.path.join(sql_dir, 'get_all_items.sql')
-    rows = exec_sql_cmd(sql_path)
-    return render_template('item_list.html', title='商品一覧', data=rows)
+    result  = exec_sql_cmd(sql_path)
+    if result["result"] == "success":
+        return render_template('item_list.html', title='商品一覧', data=result["output"])
+    else:
+        print(result["output"])
 
 
 @app.route('/product_registration', methods=["GET", "POST"])
@@ -99,11 +102,11 @@ def product_registration():
     else:
         data = dict(request.form)
         result = new_items_or_update_items(data)
-        if isinstance(result, list):
+        if result["result"] == "success":
             return render_template('product_registration.html', title='新規商品登録', message='商品登録ができました')
         else:
             # エラー
-            return render_template('product_registration.html', title='新規商品登録', message=result)
+            return render_template('product_registration.html', title='新規商品登録', message=result["output"])
 
 @app.route('/user_registration', methods=["GET", "POST"])
 def user_registration():
@@ -115,11 +118,11 @@ def user_registration():
         if data['nfcId'] == '' or data['userName'] == '':
             return render_template('user_registration.html', title='新規ユーザー登録', message='正しく入力してください')
         result = new_user_or_update_user(data)
-        if isinstance(result, list):
+        if result["result"] == "success":
             return render_template('user_registration.html', title='新規ユーザー登録', message='ユーザ登録ができました')
         else:
             # エラー
-            return render_template('user_registration.html', title='新規ユーザー登録', message=result)
+            return render_template('user_registration.html', title='新規ユーザー登録', message=result["output"])
 
 def create_app():
     eventlet.spawn(rabbitmq_consumer_thread)

@@ -14,6 +14,12 @@ abs_dirpath = os.path.dirname(os.path.abspath(__file__))  # 絶対パスを取�
 sql_dir = os.path.join(abs_dirpath, 'sqls')
 
 def exec_sql_cmd(path_to_sql, replace_dict={}):
+    """
+    output: dict(output_type: result)
+    output_type: 成功したかどうか, success / error 
+    result: successならlist(tupple), errorならエラーメッセージ(str)
+    """
+    result = {"result":None, "output": None}
     try:
         with mysql.connector.connect(autocommit=True, **db_config) as conn:
             with conn.cursor() as cur:
@@ -23,9 +29,13 @@ def exec_sql_cmd(path_to_sql, replace_dict={}):
                         sql = sql.replace(key, val)
                     cur.execute(sql)
                 rows = cur.fetchall()
-        return rows
+        result["result"] = "success"
+        result["output"] = rows
+        return result
     except Error as err:
-        return err
+        result["result"] = "error"
+        result["output"] = err
+        return result
 
 def get_items(barcode_data):
     """取得したバーコードのid, name, priceを取得
@@ -37,40 +47,44 @@ def get_items(barcode_data):
         → error
     """
     sql_path = os.path.join(sql_dir, 'get_items.sql')
-    rows = exec_sql_cmd(sql_path, replace_dict={'BARCODE': str(barcode_data)})
-    if len(rows) == 1:
-        return rows[0]
-    elif len(rows) == 0:
-        return barcode_data
+    result = exec_sql_cmd(sql_path, replace_dict={'BARCODE': str(barcode_data)})
+    if result["result"] == "success":
+        # DBに問い合わせが成功
+        if len(result["output"]) == 0:
+            # barcodeがDBに登録されていなければbarcodeを返す
+            return barcode_data
+        else:
+            # 登録されていればその結果を返す
+            return result["output"][0]
     else:
+        # エラーが出たら出力
         print('error')
 
-def get_user(value):
-    """取得したバーコードのid, name, priceを取得
-    barcodeがDBに登録済み
-        → id, name, price を返す
-    barcodeが未登録
-        → 空の配列を返す
+def get_user(nfc_id):
+    """取得したユーザーのid, name, nfc_id, grade, balanceを取得
+    userがDBに登録済み
+        → id, name, nfc_id, grade, balance を返す
+    usereが未登録
+        → 
     barcodeに登録された商品が複数
         → error
     """
     sql_path = os.path.join(sql_dir, 'get_user.sql')
-    rows = exec_sql_cmd(sql_path, replace_dict={'NFC_ID': str(value)})
-    if len(rows) == 1:
-        return rows[0]
-    elif len(rows) == 0:
-        return value
+    result = exec_sql_cmd(sql_path, replace_dict={'NFC_ID': str(nfc_id)})
+    if result["result"] == "success":
+        # DBに問い合わせが成功
+        if len(result["output"]) == 0:
+            # barcodeがDBに登録されていなければbarcodeを返す
+            return nfc_id 
+        else:
+            # 登録されていればその結果を返す
+            return result["output"][0]
     else:
+        # エラーが出たら出力
         print('error')
 
 def insert_order(data):
-    """取得したバーコードのid, name, priceを取得
-    barcodeがDBに登録済み
-        → id, name, price を返す
-    barcodeが未登録
-        → 空の配列を返す
-    barcodeに登録された商品が複数
-        → error
+    """user_idと購入した商品をもとに購入記録を追記、在庫数を更新
     """
     user_id = data['user_id']
     item_ids = data['item_id']
@@ -85,16 +99,14 @@ def insert_order(data):
             'ITEM_PRICE': str(price),
         }
         result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
-        result += exec_sql_cmd(sql_path2, replace_dict=replace_ditc)
+        print("insert order", result)
+        result = exec_sql_cmd(sql_path2, replace_dict=replace_ditc)
+        print("update stock", result)
+    print("inter_order")
+    print(result)
 
 def update_balance(data):
-    """取得したバーコードのid, name, priceを取得
-    barcodeがDBに登録済み
-        → id, name, price を返す
-    barcodeが未登録
-        → 空の配列を返す
-    barcodeに登録された商品が複数
-        → error
+    """user_idと購入合計金額をもとに収支を更新
     """
     user_id = data['user_id']
     total = data['total']
@@ -104,25 +116,9 @@ def update_balance(data):
         'USER_ID': str(user_id),
     }
     result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
+    print("update_balance")
+    print(result)
 
-def update_items(data):
-    """取得したバーコードのid, name, priceを取得
-    barcodeがDBに登録済み
-        → id, name, price を返す
-    barcodeが未登録
-        → 空の配列を返す
-    barcodeに登録された商品が複数
-        → error
-    """
-    user_id = data['user_id']
-    total = data['total']
-    sql_path = os.path.join(sql_dir, 'update_balance.sql')
-    replace_ditc = {
-        'TOTAL': str(total),
-        'USER_ID': str(user_id),
-    }
-    result = exec_sql_cmd(sql_path, replace_dict=replace_ditc)
-    sql_path = os.path.join(sql_dir, 'update_balance.sql')
 
 def new_user_or_update_user(data):
     """取得したバーコードのid, name, priceを取得

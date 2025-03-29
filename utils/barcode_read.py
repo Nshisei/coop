@@ -27,6 +27,8 @@ def send_barcode_data(data):
 
 # 利用可能なデバイスをリストアップ
 devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+print(evdev.list_devices())
+print(devices)
 for device in devices:
     print(device.path, device.name, device.phys)
     if 'Barcode' in device.name:
